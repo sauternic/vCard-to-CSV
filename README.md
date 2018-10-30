@@ -15,13 +15,13 @@
 ![Bild](https://github.com/sauternic/Gif_Bilder/blob/master/VCard-to-CSV.png)
 
 
-### Tested on new:
+### Tested on new
     
 - Firefox
-    - Chrome
-    - Opera
-    - IE
-    - Edge
+- Chrome
+- Opera
+- IE
+- Edge
 	
 	
 # [Show]()
