@@ -12,7 +12,7 @@
 - Runs on almost every device!
 
 
-![Bild]()
+![Bild](https://github.com/sauternic/Gif_Bilder/blob/master/VCard-to-CSV.png)
 
 
 ### Tested on new:
@@ -77,41 +77,41 @@ Then SQL:
 
 - Getestet mit einem kontakte.vcf file von meinem Android-Samsung Smartphone.   
 
-- Läuft fast auf jedem Gerät!   
+- LÃ¤uft fast auf jedem GerÃ¤t!   
 
 ### Getestet auf neuen:
     
-	- Firefox
-    - Chrom
-    - Opera
-    - IE
-    - Edge
+- Firefox
+- Chrom
+ - Opera
+ - IE
+ - Edge
 
 ----
 
 ## Anleitung:   
 
-- Drei Möglichkeiten ein File zu Laden:   
+- Drei MÃ¶glichkeiten ein File zu Laden:   
 
 1. Drag and Drop vom PC   
-2. Datei wählen mit Button   
+2. Datei wÃ¤hlen mit Button   
 3. Copy paste ins Textfeld    
 
-- Für Gebrauch einfach Copy Paste aus Textfeld rechts.    
+- FÃ¼r Gebrauch einfach Copy Paste aus Textfeld rechts.    
 
 
 -----
 
 
-## CSV File Möglichkeiten:
+## CSV File MÃ¶glichkeiten:
 
-### Öffnen in Excel
+### Ã–ffnen in Excel
   
   Copy and paste in ein Excel Blatt, dann Funktion -> Daten/Text in Spalten
  
 oder
 
-  Copy and paste in ein Textfile mit Endung .csv dann mit Maus Doppelklick öffnen, fertig! :)
+  Copy and paste in ein Textfile mit Endung .csv dann mit Maus Doppelklick Ã¶ffnen, fertig! :)
 
 
 ## Speichern in Datenbank
@@ -120,7 +120,3 @@ oder
     
 	Dann SQL:
     LOAD DATE INFILE 'C:/...Textfile.csv' INTO TABLE <table> FIELDS TERMINATED BY ';' ;
-	
-	Tags:
-	
-	vcard csv vcf parser readable javascript html
