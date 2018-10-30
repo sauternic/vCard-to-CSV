@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+
+<head>
+    <title>vCard to CSV V2.0</title>
+
+    <!--Author: Nicolas Sauter on Github: (sauternic)-->
+
+    <meta charset="utf-8">
+    <meta name="description" content="Suchen mit regulären Ausdrücken">
+    <meta name="keywords" content="regular-expression,reguläre-ausdrücke,regexp,regexpression,suchen,filtern,filter,javascript,html">
+
+    <style>
+        * {
+            margin: 5px;
+            padding: 5px;
+        }
+
+        body {
+            background-color: bisque;
+            font-size: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+        #title1{
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        input {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 20px;
+        }
+
+        .verschieben {
+            margin-left: 35px;
+        }
+        
+        .parseBackground {
+            background-color: rgb(10, 236, 217)
+        }
+        .greenBackground {
+            background-color: rgb(10, 236, 59)
+        }
+
+        .redBackground {
+            background-color: rgb(238, 130, 42)
+        }
+
+        #slider1 {
+            width: 296px;
+        }
+
+        #divEingabe {
+            background-color: rgb(228, 145, 235);
+            max-width: 802px;
+        }
+
+        textarea {
+            height: 800px;
+            width: 800px;
+            font-size: 15px;
+        }
+
+    </style>
+    <script>
+
+        (function () {
+            'use strict';
+            //Events
+            //window.addEventListener('error', function (e) { alert('Meine Fehlermeldung!: ' + e.message); }, false);
+            window.addEventListener('load', on_load, false);
+
+            function on_load() {
+
+                //Der Zeichensatz 'CP1252'(Windows-1252 oder ANSI) basiert auf ISO 8859-1
+
+                //var ANSI = 'CP1252';
+
+                //Folgendes dass auch in ie und edge geht!
+                var ANSI = 'ISO-8859-1';
+
+                //Events
+                window.addEventListener('keydown', on_keydown, false);
+                slider1.addEventListener('input', on_input_S, false);
+                slider1.addEventListener('change', on_input_S, false);
+
+                start_button1.addEventListener('click', ausfuehren, false);
+                textarea1.addEventListener('input', on_input, false);
+                speichern_button1.addEventListener('click', speichern, false);
+                holen_button1.addEventListener('click', holen, false);
+                file1.addEventListener('change', on_change_F, false);
+
+
+                //*****Drag and Drop vom PC in das Browser-Textfeld*********************************************
+
+                //Standard Verhalten Unterbinden weil sonst -> (öffnet eine neue Seite mit dem Text)!
+                window.addEventListener('dragover', function (e) { e.preventDefault(); }, false);
+                //Für Chrom nötig wenn daneben gezogen, sonst -> (öffnet eine neue Seite mit dem Text)!
+                document.addEventListener('drop', function (e) { e.preventDefault(); }, false);
+                //Drag and Drop Einrichten
+                textarea1.addEventListener('drop', on_drop, false);
+
+                function on_drop(e) {
+                    var fReader = new FileReader();
+
+                    if (checkbox1.checked) {
+                        fReader.readAsText(e.dataTransfer.files[0], ANSI);
+                    } else {
+                        fReader.readAsText(e.dataTransfer.files[0]);
+                    }
+
+                    fReader.onload = function () {
+                        textarea1.value = fReader.result;
+                    }
+                }
+                //**********************************************************************************************
+
+
+                if (window.localStorage) {
+                    textarea1.value = localStorage.getItem('text1');
+                    if (localStorage.slider1 != undefined) {
+                        slider1.value = localStorage.getItem('slider1');
+                        on_input_S();
+                    }
+                }
+
+                //IE null Problem beheben(wird in Textarea angezeigt)
+                if (textarea1.value === 'null')
+                    textarea1.value = '';
+
+                //File Auswählen (läuft fast gleich wie beim Drag and Drop)
+                //'e.target...' statt 'e.dataTransfer...'
+                function on_change_F(e) {
+                    var fReader = new FileReader();
+
+
+                    if (checkbox1.checked) {
+                        fReader.readAsText(e.target.files[0], ANSI);
+                    } else {
+                        fReader.readAsText(e.target.files[0]);
+                    }
+
+                    fReader.onload = function () {
+                        textarea1.value = fReader.result;
+                    }
+                }
+
+
+                function on_input_S() {
+                    textarea1.style.fontSize = slider1.value + 'px';
+                    textarea2.style.fontSize = slider1.value + 'px';
+                }
+                function on_input(e) {
+                    if (window.localStorage) {
+                        if (textarea1.value === localStorage.getItem('text1')) {
+                            speichern_button1.classList.remove("redBackground");
+                            speichern_button1.classList.add("greenBackground");
+                        } else {
+                            speichern_button1.classList.remove("greenBackground");
+                            speichern_button1.classList.add("redBackground");
+                        }
+                    }
+                }
+                function on_keydown(e) {
+                    if (e.key === 'Enter')
+                        ausfuehren();
+                    if (e.keyCode === 38)
+                        document.execCommand('redo', false, null);
+                    if (e.keyCode === 40)
+                        document.execCommand('undo', false, null);
+                }
+
+
+                //*************   Parser   **********************************************************
+                /////////////////////////////////////////////////////////////////////////////////////
+
+                function ausfuehren() {
+                    var temp;
+                    temp = textarea1.value;
+
+
+                    //Alles unnötige Rausputzen! :)))
+                    temp = temp.replace(/;/gim, '');
+                    temp = temp.replace(/CHARSET=.*:/gim, ':');
+                    //Hier nur erste Zeile von Photo weg :(
+                    temp = temp.replace(/^PHOTO.*/gim, '');
+                    //Macht die restlichen Photo-Daten weg! :)))
+                    temp = temp.replace(/^ .*\n/gim, '');
+
+
+                    //&&&&&&&&&&&  Decode CHARSET=  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&&
+
+                    // Wenn match nichts findet gibt null zurück!
+                    var arr = temp.match(/(=..=.*=..$|%..%.*%..$)/gim);
+
+
+                    if (arr !== null) {
+
+                        //Hier werden einfach '=' durch '%' ersetzt! ;)
+                        for (var x = 0; x < arr.length; x++) {
+                            arr[x] = arr[x].replace(/={1}/g, '%');
+                        }
+
+                        //Hier wird decodiert
+                        for (var x = 0; x < arr.length; x++) {
+                            arr[x] = decodeURI(arr[x]);
+                        }
+
+
+                        //Alle decodierten Werte Ersetzen im ganzen Text
+                        for (var x = 0; x < arr.length; x++) {
+                            temp = temp.replace(/(=..=.*=..$|%..%.*%..$)/m, arr[x]);
+                        }
+
+                    }
+
+                    //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+
+
+
+                    //Alles in ein Array-Array Packen+++++++++++++++++++++++++++++
+                    temp = temp.split('\n');
+
+                    var index = 0;
+                    var x = 0;
+                    var arr_str = [];
+                    var arr_str_i = [];
+                    try {
+                        while (true) {
+
+                            arr_str_i[x] = temp.shift();
+
+                            if (arr_str_i[x].match(/^END:VCARD/i)) {
+                                arr_str[index] = arr_str_i;
+                                index++;
+                                x = 0;
+                                arr_str_i = [];
+                                continue;
+                            }
+                            x++;
+                        }
+                    } catch{ };
+                    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+                    //Ausgab-Array-CSV?????????????????????????????????????????????????????????????
+                    var ausgabeArr = [];
+                    var spaltenNamen = [];
+                    var temp = '';
+                    var index = 0;
+                    for (var x = 0; x < arr_str.length; x++) {
+                        temp = arr_str[x]
+                        for (var i = 0; i < temp.length; i++) {
+                            spaltenNamen[i] = temp[i].split(':');
+                        }
+                        ausgabeArr[index] = spaltenNamen;
+                        spaltenNamen = [];
+                        index++;
+                    }
+
+
+                    //Ausgabe:
+                    var strSpalten = '';
+                    for (var x = 0; x < ausgabeArr.length; x++) {
+                        //Spalten
+                        for (var i = 0; i < ausgabeArr[x].length; i++) {
+
+                            //Filter
+                            if (filter(strSpalten, ausgabeArr, x, i))
+                                continue;
+
+                            strSpalten += ausgabeArr[x][i][0] + ';';
+                        }
+                    }
+                    function filter(strSpalten, ausgabeArr, x, i) {
+                        var str = '';
+
+                        //Grober Filter
+                        //Folgendes Rauswerfen
+                        str = ausgabeArr[x][i][0];
+
+                        if (str === 'VERSION' | 'version')
+                            return true;
+                        if (str === 'BEGIN' | 'begin')
+                            return true;
+                        if (str === 'END' | 'end')
+                            return true;
+
+                        // Muss sein sonst wird N in FN gefunden und nicht aufgenommen! :()
+                        if (strSpalten) {
+                            var spaltenWerte = strSpalten.split(';');
+                            for (var x = 0; x < spaltenWerte.length; x++) {
+                                if (spaltenWerte[x] === str)
+                                    return true;
+                            }
+                        }
+                        return false;
+                    }
+
+
+                    ///Finale! :))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+
+                    //Enthält die Kopf Zeilen
+                    //strSpalten;
+
+                    //Wird nur die Werte enthalten 
+                    var arrEntgueltig = [];
+
+
+                    //Ausgabe Objekt
+                    var obj = {};
+
+
+                    var tempStr = '';
+                    for (var x = 0; x < ausgabeArr.length; x++) {
+                        for (var i = 0; i < ausgabeArr[x].length; i++) {
+                            // key value
+                            obj[ausgabeArr[x][i][0]] = ausgabeArr[x][i][1];
+                        }
+
+                        var spaltenWerte = strSpalten.split(';');
+                        for (var y = 0; y < spaltenWerte.length; y++) {
+                            tempStr += obj[spaltenWerte[y]] + ';';
+                        }
+                        
+                        
+                        //Hier wird abgefüllt!!
+                        tempStr = tempStr.replace(/undefined/g, '');
+                        arrEntgueltig[x] = tempStr;
+
+
+                        
+                        //Ausgabe aufs Textfeld %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                        //Stellt Autokorrektur zurück(Rote Wellenlinien)
+                        textarea2.value = '';
+                        
+                        //Kopfzeile
+                        textarea2.value = strSpalten + '\n';
+                        
+                        //Werte(Zeilen)
+                        for (var y = 0; y < arrEntgueltig.length; y++) {
+                            textarea2.value += arrEntgueltig[y] + '\n'; 
+                        }
+                        //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                        tempStr = '';
+                        obj = {};
+                    }
+                    
+                    //?????????????????????????????????????????????????????????????????????????????????
+                }
+
+                /////////////////////////////////////////////////////////////////////////////////////
+                //***********************************************************************************
+
+
+                function speichern() {
+                    if (window.localStorage) {
+                        localStorage.setItem('text1', textarea1.value);
+                        speichern_button1.classList.remove("redBackground");
+                        speichern_button1.classList.add("greenBackground");
+
+                        localStorage.setItem('slider1', slider1.value);
+                    }
+                }
+                function holen() {
+                    if (window.localStorage) {
+                        window.location.reload();
+                    }
+                }
+            }
+        })();
+
+            //Abfrage Beispiele:
+            //<(?!(tr|/tr)|(td|/td)|(tbody|/tbody)).*?>
+    </script>
+</head>
+
+<body>
+    <h1 id="title1">vCard to CSV V2.0 (file.vcf)</h1>
+    <div id="divEingabe">
+        <input type="button" id="start_button1" class="parseBackground" value="Parse">
+
+        <input type="button" id="speichern_button1" class="greenBackground" value="Save">
+        <input type="button" id="holen_button1" class="greenBackground" value="Get">
+
+        <span class="verschieben">.vcf:</span>
+        <input type="file" id="file1" name="File">
+        <br>
+        <span style="vertical-align : 3px; font-size: 15px">ANSI-Import(äöü):</span>
+        <input type="checkbox" id="checkbox1">
+        <span style="vertical-align : 10px; margin-left: 83px">Font-Size:</span>
+        <input type="range" id="slider1" min="1" max="100" value="15">
+    </div>
+
+
+    <textarea wrap="off" id="textarea1" placeholder="'Drag and Drop from PC'  or  'Select a file above'  or  'Paste from clipboard (ctrl + v)'"></textarea>
+    <textarea wrap="off" id="textarea2" placeholder="copy for using('ctrl + a' and 'ctrl + c') to clipboard"></textarea>
+</body>
+
+</html>
