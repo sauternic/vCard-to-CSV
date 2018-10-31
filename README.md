@@ -12,7 +12,7 @@
 - Runs on almost every device!
 
 
-![Bild](https://github.com/sauternic/Gif_Bilder/blob/master/VCard-to-CSV.png)
+![Bild](https://github.com/sauternic/Gif_Bilder/blob/master/VCard-to-CSV2.png)
 
 
 ### Tested on new
