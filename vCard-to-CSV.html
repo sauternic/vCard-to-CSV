@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <head>
-    <title>vCard to CSV V2.0</title>
+    <title>vCard to CSV V2.1</title>
 
     <!--Author: Nicolas Sauter on Github: (sauternic)-->
 
@@ -277,11 +277,11 @@
                         //Folgendes Rauswerfen
                         str = ausgabeArr[x][i][0];
 
-                        if (str === 'VERSION' | 'version')
+                        if (str.match(/VERSION/i))
                             return true;
-                        if (str === 'BEGIN' | 'begin')
+                        if (str.match(/BEGIN/i))
                             return true;
-                        if (str === 'END' | 'end')
+                        if (str.match(/END/i))
                             return true;
 
                         // Muss sein sonst wird N in FN gefunden und nicht aufgenommen! :()
@@ -374,7 +374,7 @@
 </head>
 
 <body>
-    <h1 id="title1">vCard to CSV V2.0 (file.vcf)</h1>
+    <h1 id="title1">vCard to CSV V2.1 (file.vcf)</h1>
     <div id="divEingabe">
         <input type="button" id="start_button1" class="parseBackground" value="Parse">
 
